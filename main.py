@@ -1,5 +1,5 @@
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse, FileResponse
 import shutil
 import os
 
@@ -17,6 +17,23 @@ async def upload_file(upload_folder: str , file: UploadFile = File(...)):
         return JSONResponse(content={"message": "File uploaded successfully"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": f"An error occurred: {str(e)}"})
+
+@app.get("/images/{image_name}")
+def get_image(image_name: str, folder_path: str):
+    image_path = os.path.join(folder_path, image_name)
+    if os.path.exists(image_path):
+        return FileResponse(image_path)
+    else:
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+@app.delete("/images/{image_name}")
+def delete_image(image_name: str, folder_path: str):
+    image_path = os.path.join(folder_path, image_name)
+    if os.path.exists(image_path):
+        os.remove(image_path)
+        return {"message": "Image deleted successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="Image not found")
     
 @app.get("/")
 def read_root():
