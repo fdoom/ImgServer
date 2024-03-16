@@ -28,6 +28,8 @@ async def upload_file(path: str , file: UploadFile = File(...)):
 
 @app.get("/images/")
 def get_image(image_name: str, path: str):
+    if not is_valid_image_filename(image_name):
+        raise HTTPException(status_code=400, detail="Only images with extensions {} are allowed.".format(ALLOWED_IMAGE_EXTENSIONS))
     image_path = os.path.join(path, image_name)
     if os.path.exists(image_path):
         return FileResponse(image_path)
@@ -36,6 +38,8 @@ def get_image(image_name: str, path: str):
     
 @app.delete("/images/")
 def delete_image(image_name: str, path: str):
+    if not is_valid_image_filename(image_name):
+        raise HTTPException(status_code=400, detail="Only images with extensions {} are allowed.".format(ALLOWED_IMAGE_EXTENSIONS))
     image_path = os.path.join(path, image_name)
     if os.path.exists(image_path):
         os.remove(image_path)
