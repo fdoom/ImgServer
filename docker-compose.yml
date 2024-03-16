@@ -1,0 +1,9 @@
+version: '1'
+services:
+  image_server:
+    build: ./
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - "8000:8000"
+    restart: always
