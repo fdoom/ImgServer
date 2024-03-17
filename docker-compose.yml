@@ -6,4 +6,6 @@ services:
       - ./:/usr/src/app
     ports:
       - "8000:8000"
+    environment:
+      IMG_SERVER_API_KEY: ${IMG_SERVER_API_KEY}
     restart: always

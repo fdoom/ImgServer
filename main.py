@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Header, Depends
 from fastapi.responses import JSONResponse, FileResponse
 import shutil
 import os
@@ -15,8 +15,15 @@ def save_uploaded_file(path: str, file: UploadFile):
     with open(os.path.join(path, file.filename), "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+api_keys = os.getenv("IMG_SERVER_API_KEY")
+# API 키를 확인하는 의존성 함수
+async def get_api_key(api_key: str):
+    if api_key != api_keys:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    return api_key
+
 @app.post("/images/")
-async def upload_file(path: str , file: UploadFile = File(...)):
+async def upload_file(path: str , file: UploadFile = File(...), api_key: str = Depends(get_api_key)):
     try:
         if not is_valid_image_filename(file.filename):
             raise HTTPException(status_code=400, detail="Only images with extensions {} are allowed.".format(ALLOWED_IMAGE_EXTENSIONS))
@@ -37,7 +44,7 @@ def get_image(image_name: str, path: str):
         raise HTTPException(status_code=404, detail="Image not found")
     
 @app.delete("/images/")
-def delete_image(image_name: str, path: str):
+def delete_image(image_name: str, path: str, api_key: str = Depends(get_api_key)):
     if not is_valid_image_filename(image_name):
         raise HTTPException(status_code=400, detail="Only images with extensions {} are allowed.".format(ALLOWED_IMAGE_EXTENSIONS))
     image_path = os.path.join(path, image_name)
