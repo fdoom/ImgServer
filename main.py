@@ -34,7 +34,7 @@ async def upload_file(path: str , file: UploadFile = File(...), api_key: str = D
         return JSONResponse(status_code=500, content={"message": f"An error occurred: {str(e)}"})
 
 @app.get("/images/")
-def get_image(image_name: str, path: str):
+async def get_image(image_name: str, path: str):
     if not is_valid_image_filename(image_name):
         raise HTTPException(status_code=400, detail="Only images with extensions {} are allowed.".format(ALLOWED_IMAGE_EXTENSIONS))
     image_path = os.path.join(path, image_name)
@@ -44,7 +44,7 @@ def get_image(image_name: str, path: str):
         raise HTTPException(status_code=404, detail="Image not found")
     
 @app.delete("/images/")
-def delete_image(image_name: str, path: str, api_key: str = Depends(get_api_key)):
+async def delete_image(image_name: str, path: str, api_key: str = Depends(get_api_key)):
     if not is_valid_image_filename(image_name):
         raise HTTPException(status_code=400, detail="Only images with extensions {} are allowed.".format(ALLOWED_IMAGE_EXTENSIONS))
     image_path = os.path.join(path, image_name)
@@ -55,5 +55,12 @@ def delete_image(image_name: str, path: str, api_key: str = Depends(get_api_key)
         raise HTTPException(status_code=404, detail="Image not found")
     
 @app.get("/")
-def read_root():
-    return {"Hello" : "World!"}
+async def get_image_paths():
+    image_paths = [
+        os.path.join(root, file)
+        for root, _, files in os.walk(".")
+        for file in files
+        if os.path.splitext(file)[1].lower()[1:] in ALLOWED_IMAGE_EXTENSIONS
+    ]
+
+    return {"paths": image_paths}
